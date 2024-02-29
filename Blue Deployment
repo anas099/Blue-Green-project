@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tomcat-deployment-blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tomcat
+      role: blue
+  template:
+    metadata:
+      labels:
+        app: tomcat
+        role: blue
+    spec:
+      containers:
+      - name: tomcat
+        image: tomcat:7
+        ports:
+        - containerPort: 8080
