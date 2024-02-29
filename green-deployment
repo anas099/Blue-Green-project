@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tomcat-deployment-green
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tomcat
+      role: green
+  template:
+    metadata:
+      labels:
+        app: tomcat
+        role: green
+    spec:
+      containers:
+      - name: tomcat-container
+        image: tomcat:7
+        ports:
+        - containerPort: 8080
