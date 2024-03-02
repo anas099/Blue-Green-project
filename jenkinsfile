@@ -1,0 +1,60 @@
+pipeline {
+	environment{
+		image-tag = '7'
+	}
+    stages { 
+      stage ('K8S Deploy') {
+        steps {
+          script {
+            withKubeConfig([credentialsId: 'K8S', serverUrl: '']) {
+              sh ('kubectl apply -f  Blue-Deployment')
+  				    sh ('kubectl apply -f  Tomcat-Service')
+          		sh ('kubectl apply -f  green-deployment')
+          		sh ('kubectl apply -f  tomcat-test-blue-service')
+          		sh ('kubectl apply -f  tomcat-test-green-service')
+                }
+            }
+        }
+     }
+      stage ('K8S Rolling update') {
+        steps {
+          script {
+            withKubeConfig([credentialsId: 'K8S', serverUrl: '']) {
+  				    sh "kubectl set image deployment/Blue-Deployment tomcat=tomcat:$image-tag  --record=true"
+              sh 'kubectl rollout status deployment/Blue-Deployment'
+  				    sh "kubectl set image deployment/green-deployment tomcat=tomcat:$image-tag  --record=true"
+              sh 'kubectl rollout status deployment/green-deployment'
+                    }
+                }
+            }
+        }
+		
+      stage('Configure Email') {
+        steps {
+          script {
+            configureEmail()
+                }
+            }
+        }
+      stage('Post-Deployment Actions') {
+		    post{
+		      failure {
+                 mail to: 'task@gmail.com', subject: "FAILURE: ${env.JOB_NAME}", body: 'Job has failed', mimeType: 'text/plain'
+         }
+		  }
+		}
+  }
+}
+
+def configureEmail() {
+// this function is to re configure the smtp server for changes but the steps of configuring it from jenkins systems already exists in reedme
+    def jenkinsLocation = Jenkins.getInstance().getDescriptorByType(JenkinsLocationConfiguration.class)
+    jenkinsLocation.setAdminAddress('mostafa.anas99@gmail.com')
+    jenkinsLocation.save()
+    def mailer = Jenkins.instance.getDescriptorByType(hudson.tasks.Mailer.class)
+    mailer.setSmtpHost('smtp.gmail.com')
+    mailer.setUseSsl(true) 
+    mailer.setSmtpPort('587') 
+    mailer.setCharset('UTF-8')
+    mailer.save()
+}
