@@ -8,10 +8,10 @@ pipeline {
           script {
             withKubeConfig([credentialsId: 'K8S', serverUrl: '']) {
               sh ('kubectl apply -f  Blue-Deployment')
-  				    sh ('kubectl apply -f  Tomcat-Service')
-          		sh ('kubectl apply -f  green-deployment')
-          		sh ('kubectl apply -f  tomcat-test-blue-service')
-          		sh ('kubectl apply -f  tomcat-test-green-service')
+  	      sh ('kubectl apply -f  Tomcat-Service')
+              sh ('kubectl apply -f  green-deployment')
+              sh ('kubectl apply -f  tomcat-test-blue-service')
+              sh ('kubectl apply -f  tomcat-test-green-service')
                 }
             }
         }
@@ -20,9 +20,9 @@ pipeline {
         steps {
           script {
             withKubeConfig([credentialsId: 'K8S', serverUrl: '']) {
-  				    sh "kubectl set image deployment/Blue-Deployment tomcat=tomcat:$image-tag  --record=true"
+  	      sh "kubectl set image deployment/Blue-Deployment tomcat=tomcat:$image-tag  --record=true"
               sh 'kubectl rollout status deployment/Blue-Deployment'
-  				    sh "kubectl set image deployment/green-deployment tomcat=tomcat:$image-tag  --record=true"
+  	      sh "kubectl set image deployment/green-deployment tomcat=tomcat:$image-tag  --record=true"
               sh 'kubectl rollout status deployment/green-deployment'
                     }
                 }
